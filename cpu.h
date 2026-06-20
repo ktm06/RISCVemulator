@@ -1,6 +1,8 @@
 #include <stdint.h>
+#include <stdio.h>
 #define mem_size (1024 * 64) // 64KB allocation
-// CPU structure: 32 registers, pc starting @ 0, 1MB memory
+#define debug 1
+// CPU structure: 32 registers, pc starting @ 0, 64KB memory
 struct CPU {
     uint32_t registers[32];
     uint32_t pc;
@@ -25,3 +27,6 @@ void exec_jal(struct CPU * cpu, uint32_t instruction);
 void exec_lui(struct CPU * cpu, uint32_t instruction);
 void exec_auipc(struct CPU *cpu, uint32_t instruction);
 void exec_sys(struct CPU * cpu, uint32_t instruction);
+void run(struct CPU * cpu);
+void regview(struct CPU * cpu);
+void loadinstr(struct CPU * cpu, uint32_t *instr);
