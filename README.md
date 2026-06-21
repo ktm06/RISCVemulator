@@ -1,4 +1,4 @@
-**Overview**
+**Overview**:
 This is a RISC-V CPU emulator containing the base RV32IM + Zicsr extension instructions. 
 
 Currently, it runs both hand written programs and compiled C binaries.
