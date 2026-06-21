@@ -5,7 +5,7 @@ int main(void) {
     static struct CPU cpu;
     reset(&cpu);
 
-    loadfile(&cpu, "tests/bins/forloop.bin");
+    loadfile(&cpu, "tests/bins/addingfunc.bin");
     run(&cpu);
     regview(&cpu);
     return 0;
