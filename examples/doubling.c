@@ -1,4 +1,4 @@
-#include "../cpu.h"
+#include "../emulator/cpu.h"
 #include <stdio.h>
 
 
