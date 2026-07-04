@@ -1,8 +1,12 @@
 **Overview**:
 
-This is a RISC-V CPU emulator containing the base RV32IM + Zicsr extension instructions. Currently, it runs both hand written programs and compiled C binaries. 
+This project combines a [RISC-V ISA](https://www.cse.iitd.ac.in/~srsarangi/archbook/chapters/riscv.pdf) assembler (written in OCaml) and a RISC-V CPU emulator (written in C), containing the base RV32IM + Zicsr extension instructions. 
 
-**Architecture**:
+On a high level, the assembler assembles a ```.txt``` file into binary format, and the emulator will take in that ```.bin``` file and replicates proper RISC-V CPU behavior. By default it will print out the final register states. With debug on, it will also print for each step.
+
+We do not have to use the assembler to feed instruction to the CPU. We can also run binary-compiled C programs on the emulator using a bare-metal cross-compiler, or just pass our own list of [binary instructions](https://msyksphinz-self.github.io/riscv-isadoc/html/rvi.html). 
+
+** EmulatorArchitecture**:
 
 The emulator replicates a CPU by executing insturctions through the fetch-decode-exeucte loop:
 
@@ -14,7 +18,7 @@ The emulator replicates a CPU by executing insturctions through the fetch-decode
 
 The CPU has 32 general-purpose 32-bit registers. We follow RISC-V convention by hardwiring x0 to 0 and setting x1 to the stack pointer. x10 is used as the main() function return value. We also have a separate, CSR bank, used by our Ziscr extension. 
 
-RISC-V is a Von Neumann architecture, so our instruction and data live in the same memory. Our emulator is 64KB of memory.
+RISC-V is a Von Neumann architecture, so our instruction and data live in the same memory. Our emulator contains 64KB of memory.
 
 The emulator replicates a RISC-V CPU behaviorally. It is not pipelined or cycle-accurate. 
 
@@ -52,3 +56,5 @@ https://fraserinnovations.com/risc-v/risc-v-instruction-set-explanation/
 https://msyksphinz-self.github.io/riscv-isadoc/html/rvi.html
 
 https://riscv-non-isa.github.io/riscv-elf-psabi-doc/
+
+https://www.cse.iitd.ac.in/~srsarangi/archbook/chapters/riscv.pdf
