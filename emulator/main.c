@@ -5,7 +5,7 @@ int main(void) {
     static struct CPU cpu;
     reset(&cpu);
 
-    loadfile(&cpu, "../tests/bins/test.bin");
+    loadfile(&cpu, "../assembler/results.bin");
     run(&cpu);
     regview(&cpu);
     return 0;

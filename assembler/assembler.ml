@@ -129,7 +129,7 @@ let regvert reg = match List.assoc_opt reg abis with
  | Some a -> a
  | None -> failwith("unknown reg: " ^ reg)
 
-let contents = In_channel.with_open_text "test1.txt" In_channel.input_all
+let contents = In_channel.with_open_text "accum.txt" In_channel.input_all
 
 let testinstruction = "add rd, rs1, rs2"
 

@@ -1,0 +1,8 @@
+  addi ra, zero, 0
+    addi sp, zero, 1
+    addi gp, zero, 100
+loop:
+    add ra, ra, sp
+    addi sp, sp, 1
+    blt sp, gp, loop
+    ecall
