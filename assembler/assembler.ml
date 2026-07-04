@@ -49,23 +49,81 @@ let table = [
   ("jalr",   (0x67, 0x0, 0x00));  
 ]
 
+(* ABIs -> bit *)
+let abis = [
+  ("zero", 0); 
+  ("ra", 1);
+  ("sp", 2);
+  ("gp", 3);
+  ("tp", 4);
+  ("t0", 5); (* temp regs *)
+  ("t1", 6);
+  ("t2", 7);
+  ("s0", 8); (* callee saved regs*)
+  ("fp", 8); (* frame pointer *)
+  ("s1", 9);
+  ("a0", 10); (* argument regs *)
+  ("a1", 11);
+  ("a2", 12);
+  ("a3", 13);
+  ("a4", 14);
+  ("a5", 15);
+  ("a6", 16);
+  ("a7", 17);
+  ("s2", 18);
+  ("s3", 19);
+  ("s4", 20);
+  ("s5", 21);
+  ("s6", 22);
+  ("s7", 23);
+  ("s8", 24);
+  ("s9", 25);
+  ("s10", 26);
+  ("s11", 27);
+  ("t3", 28);
+  ("t4", 29);
+  ("t5", 30);
+  ("t6", 31);
+]
+
+
 let check instr = 
-  let (opcode, _, funct7) = List.assoc instr table in match opcode with
-  | 0x33 -> if funct7=0x01 then Mtype else Rtype
-  | 0x13 -> Itype
-  | 0x03 -> Ltype
-  | 0x23 -> Stype
-  | 0x63 -> Btype
-  | 0x6F -> Jal
-  | 0x67 -> Jalr
-  | _ -> failwith ("unknown opcode: " ^ instr)
+  match List.assoc_opt instr table with
+  | Some (opcode, _, funct7) -> (match opcode with 
+    | 0x33 -> if funct7=0x01 then Mtype else Rtype
+    | 0x13 -> Itype
+    | 0x03 -> Ltype
+    | 0x23 -> Stype
+    | 0x63 -> Btype
+    | 0x6F -> Jal
+    | 0x67 -> Jalr
+    | _ -> failwith ("unknown opcode: " ^ instr)
+  )
+  | None -> failwith ("unknown opcode: " ^ instr)
 
-let encodeR instr rd rs1 rs2 = 
-  let (opcode, funct3, funct7) = List.assoc instr table in opcode
-  lor (rd lsl 7) lor (funct3 lsl 12) lor (rs1 lsl 15) lor (rs2 lsl 20) lor (funct7 lsl 25)
+let encodeRM instr rd rs1 rs2 = 
+  let (opcode, funct3, funct7) = List.assoc instr table in 
+  opcode lor (rd lsl 7) lor (funct3 lsl 12) lor (rs1 lsl 15) lor (rs2 lsl 20) lor (funct7 lsl 25)
 
+let encodeIL instr rd rs1 imm = 
+  let (opcode, funct3, funct7) = List.assoc instr table in 
+  opcode lor (rd lsl 7) lor (funct3 lsl 12) lor (rs1 lsl 15) lor (imm lsl 20)
 
+let encodeS instr rs1 rs2 offset =
+  let (opcode, funct3, funct7) = List.assoc instr table in 
+  opcode lor ((offset land 0x1F) lsl 7) lor (funct3 lsl 12) lor (rs1 lsl 15) lor (rs2 lsl 20) lor (((offset lsr 5) land 0x7F) lsl 25)
 
+let encodeJAL instr offset rd = 
+  let (opcode, funct3, funct7) = List.assoc instr table in
+  opcode lor (rd lsl 7) lor (((offset lsr 12) land 0xFF) lsl 12) lor (((offset lsr 11) land 0x1) lsl 20) lor (((offset lsr 1) land 0x3FF) lsl 21) lor (((offset lsr 20) land 0x1) lsl 31)
+
+let encodeB instr offset rs1 rs2 = 
+  let (opcode, funct3, funct7) = List.assoc instr table in
+  opcode lor (funct3 lsl 12) lor (rs1 lsl 15) lor (rs2 lsl 20) lor (((offset lsr 1) land 0xF) lsl 8) lor (((offset lsr 5) land 0x3F) lsl 25) lor (((offset lsr 11) land 0x1) lsl 7) lor (((offset lsr 12) land 0x1) lsl 31)
+
+let regvert reg = match List.assoc_opt reg abis with
+ | Some a -> a
+ | None -> failwith("unknown reg: " ^ reg)
 
 let contents = In_channel.with_open_text "test1.txt" In_channel.input_all
 
@@ -100,19 +158,60 @@ let run1 input = List.iter ( fun x ->
     end else acc()
 ) input
 
-(*
-let run2 input = List.iter ( fun x ->
+(* increment for run2 *)
+let addr = ref 0
+
+let accaddr () = addr := !addr + 4
+
+(* label to int conversion *)
+let transfer input =
+  match Hashtbl.find_opt symbols  input with
+  | Some target -> target - !addr 
+  | None -> int_of_string input
+
+let run2 input = List.filter_map( fun x ->
   match x with 
-  | [] -> ()
-  | h :: t -> 
-    begin 
-    if (check h)=Rtype
-      encodeR
-      
-      
+  | [] -> None
+  | h :: t -> if String.contains h ':' then None else begin
+    let word = (match check h with
+    | Rtype | Mtype -> 
+      let rd = regvert (List.nth t 0) in
+      let rs1 = regvert (List.nth t 1) in
+      let rs2 = regvert (List.nth t 2) in
+      encodeRM h rd rs1 rs2
+    | Itype | Jalr ->
+      let rd = regvert (List.nth t 0) in
+      let rs1 = regvert (List.nth t 1) in
+      let imm = int_of_string (List.nth t 2) in
+      encodeIL h rd rs1 imm
+    | Ltype -> (* format: instr rd, offset(rs2) so we must parse that but  *)
+      let rd = regvert (List.nth t 0) in
+      let a = String.split_on_char '(' (List.nth t 1) in
+      let offset = int_of_string (List.hd a) in
+      let rs1 = regvert (List.hd (String.split_on_char ')' (List.nth a 1))) in
+      encodeIL h rd rs1 offset
+    | Jal ->
+      let rd = regvert (List.nth t 0) in
+      let offset = transfer (List.nth t 1) in
+      encodeJAL h offset rd
+    | Btype ->
+      let rs1 = regvert (List.nth t 0) in
+      let rs2 = regvert (List.nth t 1) in 
+      let offset = transfer (List.nth t 2) in
+      encodeB h offset rs1 rs2
+    | Stype ->
+      let rs2 = regvert (List.nth t 0) in
+      let a = String.split_on_char '(' (List.nth t 1) in
+      let offset = int_of_string (List.hd a) in
+      let rs1 = regvert (List.hd (String.split_on_char ')' (List.nth a 1))) in
+      encodeS h rs2 rs1 offset)
+    in accaddr();
+    Some word
+  end
+
     
-  )
-*) 
+  ) input
+
 
 
 (* pipeline here *)
@@ -121,3 +220,6 @@ let parsed = contents |> filesplitter |> commstrip |> linesplitter |> stripempty
 let () = run1 parsed
 
 let () = Hashtbl.iter (fun k v -> Printf.printf "%s -> %d\n" k v) symbols
+
+let encoded = run2 parsed
+
