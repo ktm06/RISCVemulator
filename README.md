@@ -6,7 +6,7 @@ On a high level, the assembler assembles a ```.txt``` file into binary format, a
 
 We do not have to use the assembler to feed instruction to the CPU. We can also run binary-compiled C programs on the emulator using a bare-metal cross-compiler, or just pass our own list of [binary instructions](https://msyksphinz-self.github.io/riscv-isadoc/html/rvi.html). 
 
-** EmulatorArchitecture**:
+**Emulator Architecture**:
 
 The emulator replicates a CPU by executing insturctions through the fetch-decode-exeucte loop:
 
