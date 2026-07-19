@@ -130,7 +130,9 @@ let regvert reg = match List.assoc_opt reg abis with
  | Some a -> a
  | None -> failwith("unknown reg: " ^ reg)
 
-let contents = In_channel.with_open_text "accum.txt" In_channel.input_all
+let infile = if String.length Sys.argv.(1) > 1 then Sys.argv.(1)  else "test1.txt"
+
+let contents =  In_channel.with_open_text infile In_channel.input_all
 
 let testinstruction = "add rd, rs1, rs2"
 
@@ -220,6 +222,8 @@ let run2 input = List.filter_map( fun x ->
 
     
   ) input
+
+let outfile = if (String.length Sys.argv.(2) > 1) then Sys.argv.(2) else "results.bin"
 
 let outbin filename words =
   let oc = open_out_bin filename in List.iter( fun word -> 
