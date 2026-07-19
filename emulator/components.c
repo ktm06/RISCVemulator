@@ -99,7 +99,7 @@ void run(struct CPU *cpu) {
     puts("Begin");
     int i= 1;
     while (cpu->stop == 0x0) {
-        printf("Instruction %i:\n", i);
+        if (debug) printf("Instruction %i:\n", i);
         step(cpu);
         i++;
         if (i > 10000) {

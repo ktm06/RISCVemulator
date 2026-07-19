@@ -103,7 +103,8 @@ let check instr =
   )
   | None -> failwith ("unknown opcode: " ^ instr)
 
-  (* encoders *)
+(* encoders *)
+(* for each line, nums represents bit shifts to get to proper format *)
 let encodeRM instr rd rs1 rs2 = 
   let (opcode, funct3, funct7) = List.assoc instr table in 
   opcode lor (rd lsl 7) lor (funct3 lsl 12) lor (rs1 lsl 15) lor (rs2 lsl 20) lor (funct7 lsl 25)
@@ -146,6 +147,8 @@ let stripempty input = List.filter (fun x -> x <> []) input
 
 let increment = ref 0
 
+
+(* pc jumps by 4 *)
 let acc () = increment := !increment + 4
 
 let symbols = Hashtbl.create 10
