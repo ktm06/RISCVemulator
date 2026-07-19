@@ -244,4 +244,4 @@ let () = run1 parsed
 let encoded = run2 parsed
 
 (* output *)
-let () = outbin "results.bin" encoded
+let () = outbin outfile encoded
