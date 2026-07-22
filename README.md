@@ -63,7 +63,7 @@ For the entire project, I used the Windows Subsystem for Linux. To install on Wi
 
 ```wsl --install```
 
-All the instructions below will be in Linux CLI commands.
+All the instructions below are in Linux CLI commands.
 
 ## Assembler Emulator Wrap-Around
 We use a Makefile to build and run both halves at once. This requires make (on linux/wsl: sudo apt install build-essential).
