@@ -8,7 +8,7 @@ We do not have to use the assembler to feed instruction to the CPU. We can also 
 
 The project was verified using, hand-assembled programs (straight binary inputs), with compiled C programs (using gcc), and compiled assembly programs (using our Assembler). All cases returned expected results.
 
-# Chapter Overview
+# Chapters
 
 [1. Assembler](#Assembler)
 
